@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
-// ต้อง Import binding ของหน้านี้ให้ถูก
 import com.soponivtk.productmanagement.databinding.ActivityAddEditProductBinding
 
 class AddEditProductActivity : AppCompatActivity() {
@@ -35,13 +34,16 @@ class AddEditProductActivity : AppCompatActivity() {
 
         dbHelper = ProductDbHelper(this)
 
-        // ตรวจสอบว่าเป็นการแก้ไขหรือเพิ่มใหม่
-        productId = intent.getIntExtra("product_id", -1)
+        // ตรวจสอบค่าที่ส่งมาจาก Fragment (แก้ให้ตรงกับ PRODUCT_ID)
+        productId = intent.getIntExtra("PRODUCT_ID", -1)
+
         if (productId != -1) {
-            supportActionBar?.title = "แก้ไขสินค้า"
+            // ถ้ามี ID แสดงว่าเป็นโหมดแก้ไข
+            binding.buttonSave.text = "อัปเดตข้อมูลสินค้า"
             loadProductData()
         } else {
-            supportActionBar?.title = "เพิ่มสินค้า"
+            // ถ้าไม่มี ID แสดงว่าเป็นโหมดเพิ่มใหม่
+            binding.buttonSave.text = "บันทึกสินค้าใหม่"
         }
 
         binding.buttonSelectImage.setOnClickListener {
@@ -83,6 +85,7 @@ class AddEditProductActivity : AppCompatActivity() {
             return
         }
 
+        // สร้าง Object Product โดยใช้ ID เดิมถ้าเป็นการแก้ไข
         val product = Product(
             id = if (productId != -1) productId else 0,
             name = name,
@@ -93,15 +96,18 @@ class AddEditProductActivity : AppCompatActivity() {
         )
 
         if (productId != -1) {
-            dbHelper.updateProduct(product)
-            Toast.makeText(this, "แก้ไขข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+            // คำสั่งอัปเดตข้อมูลเดิม
+            val rows = dbHelper.updateProduct(product)
+            if (rows > 0) {
+                Toast.makeText(this, "อัปเดตข้อมูลสำเร็จ", Toast.LENGTH_SHORT).show()
+            }
         } else {
+            // คำสั่งเพิ่มข้อมูลใหม่
             dbHelper.insertProduct(product)
             Toast.makeText(this, "เพิ่มสินค้าสำเร็จ", Toast.LENGTH_SHORT).show()
         }
 
-        setResult(Activity.RESULT_OK)
-        finish()
+        finish() // ปิดหน้านี้เพื่อกลับไปหน้าหลัก
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
